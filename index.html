@@ -46,7 +46,7 @@
   h1 em{font-style:normal;color:var(--ink)}
   .sub{margin:4px 0 0;color:var(--muted);font-size:16px}
 
-  .grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:22px;align-items:start}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:22px;align-items:start}
   @media (max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}}
 
   /* Stage */
@@ -80,22 +80,35 @@
 
   /* Song cards */
   .side{display:flex;flex-direction:column;gap:14px;min-width:0}
-  .side h2{font-family:var(--display);font-weight:400;font-size:22px;margin:2px 4px 0;color:var(--ink)}
+  .side h2{font-family:var(--display);font-weight:400;font-size:28px;margin:2px 4px 2px;color:var(--pink);
+    display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .side h2 small{font-family:var(--body);font-size:14px;color:#c23a66;background:var(--paper);
+    padding:3px 10px;border-radius:999px}
+  .picker{background:var(--pink-soft);border:2px solid #ffc2d4;border-radius:26px;padding:18px 16px;
+    box-shadow:0 14px 34px rgba(255,95,143,.18)}
   .item{--c:var(--pink);--soft:var(--pink-soft);
     display:flex;gap:12px;align-items:center;text-align:left;width:100%;padding:10px;cursor:pointer;
     font:inherit;color:var(--ink);background:var(--paper);border:3px solid transparent;border-radius:20px;
-    box-shadow:0 8px 20px rgba(58,42,53,.08);transition:transform .15s, box-shadow .15s}
-  .item:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(58,42,53,.12)}
-  .item.on{border-color:var(--c);background:var(--soft)}
+    box-shadow:0 6px 16px rgba(194,58,102,.12);transition:transform .15s, box-shadow .15s}
+  .item:hover{transform:translateY(-2px);border-color:#ffc2d4;box-shadow:0 12px 26px rgba(194,58,102,.18)}
+  .item.on{border-color:var(--c);background:var(--c);color:#fff;box-shadow:0 12px 28px rgba(255,95,143,.4)}
+  .item.on span{color:#ffe3ec}
+  .item.on .num{background:#fff;color:var(--pink)}
+  .item.on .pill{background:#fff;color:var(--pink)}
+  .play{position:absolute;inset:0;display:grid;place-items:center}
+  .play::before{content:"";width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.92);
+    box-shadow:0 3px 10px rgba(0,0,0,.25)}
+  .play::after{content:"";position:absolute;border-style:solid;border-width:8px 0 8px 13px;
+    border-color:transparent transparent transparent var(--pink);margin-left:4px}
   .thumb{position:relative;flex:none}
-  .thumb video{display:block;width:120px;max-width:100%;aspect-ratio:16/9;border-radius:12px;background:#1d1220;pointer-events:none}
+  .thumb video{display:block;width:150px;max-width:100%;aspect-ratio:16/9;border-radius:12px;background:#1d1220;pointer-events:none}
   .num{position:absolute;left:-6px;top:-6px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
     background:var(--c);color:#fff;font-family:var(--display);font-size:16px;box-shadow:0 3px 8px rgba(0,0,0,.18)}
-  .item b{display:block;font-family:var(--display);font-weight:400;font-size:20px;margin-bottom:2px}
+  .item b{display:block;font-family:var(--display);font-weight:400;font-size:24px;margin-bottom:2px}
   .item span{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
-  .pill{display:none;font-style:normal;margin-top:4px;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--c);color:#fff}
+  .pill{display:none;font-style:normal;margin-top:6px;font-size:13px;padding:2px 9px;border-radius:999px;background:var(--c);color:#fff}
   .item.on .pill{display:inline-block}
-  .hint{margin:4px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.7);
+  .hint{margin:0;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.75);
     color:var(--muted);font-size:14px;line-height:1.7}
   kbd{font-family:inherit;background:#fff;border:1px solid #eadbe2;border-bottom-width:2px;border-radius:6px;padding:0 6px;color:var(--ink)}
 
@@ -160,8 +173,8 @@
       </div>
     </div>
 
-    <div class="side">
-      <h2>노래 고르기</h2>
+    <div class="side picker">
+      <h2>노래 고르기 <small>눌러서 재생</small></h2>
       <div class="side" id="list"></div>
       <p class="hint"><kbd>스페이스</kbd> 재생/멈춤 · <kbd>F</kbd> 전체화면 · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 곡 선택</p>
     </div>
@@ -181,8 +194,8 @@
   songs.forEach((s, i) => {
     const b = document.createElement("button");
     b.type = "button"; b.className = "item";
-    b.innerHTML = `<div class="thumb"><video muted preload="metadata" src="${s.file}#t=15"></video><div class="num">${i + 1}</div></div>
-      <div><b>${s.title}</b><span>원곡 ${s.len}</span><br><em class="pill">지금 곡</em></div>`;
+    b.innerHTML = `<div class="thumb"><video muted preload="metadata" src="${s.file}#t=15"></video><div class="play"></div><div class="num">${i + 1}</div></div>
+      <div><b>${s.title}</b><span>원곡 ${s.len}</span><br><em class="pill">▶ 지금 곡</em></div>`;
     b.addEventListener("click", () => select(i, true));
     list.appendChild(b);
   });
