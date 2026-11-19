@@ -8,88 +8,171 @@
 <body>
 <title>수어찬 반복 재생</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
 <style>
-  /* Layout: one large stage with a song list beside it (stacked on phones). */
+  /* Layout: bright spring stage — big player card left, colorful song cards right (stacked on phones).
+     Deliberately single bright theme: every color set explicitly. */
   :root{
-    --bg:#f3f5f2; --panel:#ffffff; --ink:#1d2421; --muted:#5f6b66;
-    --line:#dde3df; --accent:#2f6f5e; --accent-ink:#ffffff; --sel:#e5f0ec;
-    --display:"Gowun Dodum","Noto Sans KR","Malgun Gothic",sans-serif;
-    --body:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --bg:#121615; --panel:#1b201e; --ink:#e9eeec; --muted:#9aa6a1;
-      --line:#2a312e; --accent:#74c2a9; --accent-ink:#0e1a16; --sel:#1d2c27; color-scheme:dark;
-    }
-  }
-  :root[data-theme="dark"]{
-    --bg:#121615; --panel:#1b201e; --ink:#e9eeec; --muted:#9aa6a1;
-    --line:#2a312e; --accent:#74c2a9; --accent-ink:#0e1a16; --sel:#1d2c27; color-scheme:dark;
+    color-scheme: light;
+    --ink:#3a2a35; --muted:#7a6470; --paper:#ffffff;
+    --pink:#ff5f8f; --pink-soft:#ffe3ec;
+    --sun:#ffb81c; --sun-soft:#fff1c9;
+    --sky:#2fa8e8; --sky-soft:#dcf1fc;
+    --leaf:#3cc48a; --leaf-soft:#dcf7ea;
+    --display:"Jua","Gowun Dodum","Malgun Gothic",sans-serif;
+    --body:"Gowun Dodum","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
   }
   *{box-sizing:border-box}
-  body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px}
-  .wrap{max-width:1180px;margin:0 auto;padding-block:24px 40px;
+  body{
+    margin:0; color:var(--ink); font-family:var(--body); font-size:16px;
+    background:
+      radial-gradient(circle at 8% 10%, #ffd6e4 0, transparent 38%),
+      radial-gradient(circle at 92% 6%, #fff0b8 0, transparent 34%),
+      radial-gradient(circle at 85% 90%, #cdeffd 0, transparent 40%),
+      radial-gradient(circle at 10% 95%, #d6f7e6 0, transparent 38%),
+      #fff8fb;
+    background-attachment: fixed;
+    min-height:100vh;
+  }
+  .wrap{max-width:1200px;margin:0 auto;padding-block:28px 48px;
     padding-left:max(16px, env(safe-area-inset-left, 0px));
     padding-right:max(16px, env(safe-area-inset-right, 0px))}
-  h1{font-family:var(--display);font-weight:400;font-size:28px;margin:0 0 4px;text-wrap:balance}
-  .sub{color:var(--muted);margin:0 0 20px}
-  .grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
-  @media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
-  .stage{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
-  video.main{display:block;width:100%;max-width:100%;aspect-ratio:16/9;background:#000}
-  .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
-  .now{font-weight:600;margin-right:auto;min-width:0}
-  .timer{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
-  button,select{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--panel);color:var(--ink);
-    padding:8px 12px;border-radius:9px;cursor:pointer}
-  button:hover,select:hover{border-color:var(--accent)}
-  button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-  .field{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--muted)}
-  .side{display:flex;flex-direction:column;gap:12px;min-width:0}
-  .item{display:flex;gap:12px;align-items:center;text-align:left;width:100%;padding:10px}
-  .item.on{background:var(--sel);border-color:var(--accent)}
-  .item video{width:112px;max-width:100%;aspect-ratio:16/9;border-radius:7px;background:#000;flex:none;pointer-events:none}
-  .item b{display:block;font-size:15px;margin-bottom:2px}
-  .item span{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
-  .hint{color:var(--muted);font-size:13px;line-height:1.7;margin:4px 0 0}
+
+  /* Header */
+  header{display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+  .badge{width:64px;height:64px;flex:none;border-radius:20px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--pink),var(--sun));box-shadow:0 8px 20px rgba(255,95,143,.35)}
+  .badge svg{width:38px;height:38px}
+  h1{font-family:var(--display);font-weight:400;font-size:clamp(30px,5vw,44px);margin:0;line-height:1.1;
+    text-wrap:balance;color:var(--pink)}
+  h1 em{font-style:normal;color:var(--sky)}
+  .sub{margin:4px 0 0;color:var(--muted);font-size:16px}
+
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:22px;align-items:start}
+  @media (max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}}
+
+  /* Stage */
+  .stage{background:var(--paper);border-radius:26px;padding:14px;min-width:0;
+    box-shadow:0 18px 40px rgba(255,95,143,.18),0 2px 0 rgba(255,184,28,.5) inset}
+  video.main{display:block;width:100%;max-width:100%;aspect-ratio:16/9;background:#1d1220;border-radius:18px}
+  .nowbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 6px 4px}
+  .now{font-family:var(--display);font-size:24px;margin-right:auto;min-width:0;color:var(--ink)}
+  .eq{display:inline-flex;gap:3px;align-items:flex-end;height:18px;margin-right:8px;vertical-align:middle}
+  .eq i{width:4px;border-radius:2px;background:var(--pink);height:6px}
+  .playing .eq i{animation:eq .9s ease-in-out infinite}
+  .eq i:nth-child(2){animation-delay:.15s;background:var(--sun)}
+  .eq i:nth-child(3){animation-delay:.3s;background:var(--sky)}
+  .eq i:nth-child(4){animation-delay:.45s;background:var(--leaf)}
+  @keyframes eq{0%,100%{height:5px}50%{height:18px}}
+  .timer{font-family:var(--display);font-size:18px;padding:8px 16px;border-radius:999px;
+    background:var(--sun-soft);color:#9a6400;font-variant-numeric:tabular-nums}
+
+  .controls{display:flex;flex-wrap:wrap;gap:14px 22px;padding:12px 6px 6px;align-items:center}
+  .group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .group > span{font-size:14px;color:var(--muted);margin-right:2px}
+  .chip{font:inherit;font-size:15px;border:2px solid transparent;cursor:pointer;
+    padding:7px 14px;border-radius:999px;background:#f6eef2;color:var(--ink);transition:transform .12s, background .12s}
+  .chip:hover{transform:translateY(-1px);background:var(--pink-soft)}
+  .chip[aria-pressed="true"]{background:var(--pink);color:#fff;box-shadow:0 4px 12px rgba(255,95,143,.35)}
+  .chip.t[aria-pressed="true"]{background:var(--sky);box-shadow:0 4px 12px rgba(47,168,232,.35)}
+  .fs{font:inherit;font-family:var(--display);font-size:18px;border:0;cursor:pointer;margin-left:auto;
+    padding:10px 20px;border-radius:999px;color:#fff;
+    background:linear-gradient(135deg,var(--pink),#ff8a5c);box-shadow:0 6px 16px rgba(255,95,143,.35)}
+  .fs:hover{filter:brightness(1.05);transform:translateY(-1px)}
+  button:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+
+  /* Song cards */
+  .side{display:flex;flex-direction:column;gap:14px;min-width:0}
+  .side h2{font-family:var(--display);font-weight:400;font-size:22px;margin:2px 4px 0;color:var(--ink)}
+  .item{--c:var(--pink);--soft:var(--pink-soft);
+    display:flex;gap:12px;align-items:center;text-align:left;width:100%;padding:10px;cursor:pointer;
+    font:inherit;color:var(--ink);background:var(--paper);border:3px solid transparent;border-radius:20px;
+    box-shadow:0 8px 20px rgba(58,42,53,.08);transition:transform .15s, box-shadow .15s}
+  .item:nth-child(2){--c:var(--sky);--soft:var(--sky-soft)}
+  .item:nth-child(3){--c:var(--leaf);--soft:var(--leaf-soft)}
+  .item:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(58,42,53,.12)}
+  .item.on{border-color:var(--c);background:var(--soft)}
+  .thumb{position:relative;flex:none}
+  .thumb video{display:block;width:120px;max-width:100%;aspect-ratio:16/9;border-radius:12px;background:#1d1220;pointer-events:none}
+  .num{position:absolute;left:-6px;top:-6px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+    background:var(--c);color:#fff;font-family:var(--display);font-size:16px;box-shadow:0 3px 8px rgba(0,0,0,.18)}
+  .item b{display:block;font-family:var(--display);font-weight:400;font-size:20px;margin-bottom:2px}
+  .item span{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .pill{display:none;font-style:normal;margin-top:4px;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--c);color:#fff}
+  .item.on .pill{display:inline-block}
+  .hint{margin:4px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.7);
+    color:var(--muted);font-size:14px;line-height:1.7}
+  kbd{font-family:inherit;background:#fff;border:1px solid #eadbe2;border-bottom-width:2px;border-radius:6px;padding:0 6px;color:var(--ink)}
+
+  /* Falling petals (decorative) */
+  .petals{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+  .petals i{position:absolute;top:-20px;width:14px;height:10px;border-radius:70% 0 70% 0;opacity:.7;
+    animation:fall linear infinite}
+  .wrap{position:relative;z-index:1}
+  @keyframes fall{to{transform:translate(60px,110vh) rotate(540deg)}}
+  @media (prefers-reduced-motion: reduce){
+    .petals{display:none}
+    .playing .eq i{animation:none;height:12px}
+    .chip,.item,.fs{transition:none}
+  }
 </style>
 
+<div class="petals" aria-hidden="true">
+  <i style="left:6%;background:#ff9fbd;animation-duration:14s;animation-delay:-2s"></i>
+  <i style="left:18%;background:#ffd36b;animation-duration:18s;animation-delay:-9s"></i>
+  <i style="left:33%;background:#ffb3c9;animation-duration:16s;animation-delay:-5s"></i>
+  <i style="left:52%;background:#9fdcff;animation-duration:20s;animation-delay:-12s"></i>
+  <i style="left:68%;background:#ff9fbd;animation-duration:15s;animation-delay:-7s"></i>
+  <i style="left:81%;background:#9fe8c4;animation-duration:19s;animation-delay:-3s"></i>
+  <i style="left:93%;background:#ffd36b;animation-duration:17s;animation-delay:-14s"></i>
+</div>
+
 <div class="wrap">
-  <h1>수어찬 반복 재생</h1>
-  <p class="sub">곡을 고르면 정한 시간 동안 계속 반복해서 재생됩니다.</p>
+  <header>
+    <div class="badge" aria-hidden="true">
+      <svg viewBox="0 0 40 40" fill="none">
+        <g fill="#fff">
+          <circle cx="20" cy="11" r="6.5"/><circle cx="28.6" cy="17.2" r="6.5"/><circle cx="25.3" cy="27.3" r="6.5"/>
+          <circle cx="14.7" cy="27.3" r="6.5"/><circle cx="11.4" cy="17.2" r="6.5"/>
+        </g>
+        <circle cx="20" cy="20" r="5.5" fill="#ffb81c"/>
+      </svg>
+    </div>
+    <div>
+      <h1>수어찬 <em>반복 재생</em></h1>
+      <p class="sub">곡을 고르면 정한 시간 동안 계속 반복해서 재생됩니다.</p>
+    </div>
+  </header>
 
   <div class="grid">
-    <div class="stage">
+    <div class="stage" id="stage">
       <video class="main" id="player" controls playsinline preload="metadata"></video>
-      <div class="bar">
-        <div class="now" id="now"></div>
-        <label class="field" for="mode">반복
-          <select id="mode">
-            <option value="one">이 곡만</option>
-            <option value="all">세 곡 차례로</option>
-          </select>
-        </label>
-        <label class="field" for="limit">시간
-          <select id="limit">
-            <option value="0">계속</option>
-            <option value="20">20분</option>
-            <option value="30">30분</option>
-            <option value="60" selected>1시간</option>
-            <option value="120">2시간</option>
-          </select>
-        </label>
-        <button id="fs" class="primary" type="button">전체화면</button>
+      <div class="nowbar">
+        <div class="now"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span id="now"></span></div>
+        <div class="timer" id="timer">재생을 누르면 시작해요</div>
       </div>
-      <div class="bar">
-        <div class="timer" id="timer">재생 버튼을 누르면 시작합니다.</div>
+      <div class="controls">
+        <div class="group" role="group" aria-label="반복 방식">
+          <span>반복</span>
+          <button class="chip" type="button" id="m-one" data-mode="one" aria-pressed="true">이 곡만</button>
+          <button class="chip" type="button" id="m-all" data-mode="all" aria-pressed="false">세 곡 차례로</button>
+        </div>
+        <div class="group" role="group" aria-label="재생 시간">
+          <span>시간</span>
+          <button class="chip t" type="button" id="t20" data-min="20" aria-pressed="false">20분</button>
+          <button class="chip t" type="button" id="t30" data-min="30" aria-pressed="false">30분</button>
+          <button class="chip t" type="button" id="t60" data-min="60" aria-pressed="true">1시간</button>
+          <button class="chip t" type="button" id="t120" data-min="120" aria-pressed="false">2시간</button>
+          <button class="chip t" type="button" id="t0" data-min="0" aria-pressed="false">계속</button>
+        </div>
+        <button class="fs" id="fs" type="button">⛶ 전체화면</button>
       </div>
     </div>
 
     <div class="side">
+      <h2>노래 고르기</h2>
       <div class="side" id="list"></div>
-      <p class="hint">스페이스바: 재생/일시정지 · F: 전체화면<br>1, 2, 3: 곡 바로 선택</p>
+      <p class="hint"><kbd>스페이스</kbd> 재생/멈춤 · <kbd>F</kbd> 전체화면 · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 곡 선택</p>
     </div>
   </div>
 </div>
@@ -101,23 +184,32 @@
     { title: "너는 꽃이야", file: "flower.mp4", len: "2:45" }
   ];
   const $ = id => document.getElementById(id);
-  const player = $("player"), list = $("list"), now = $("now"),
-        mode = $("mode"), limit = $("limit"), timerEl = $("timer");
-  let current = 0, endAt = 0, tick = null;
+  const player = $("player"), list = $("list"), now = $("now"), timerEl = $("timer"), stage = $("stage");
+  let current = 0, endAt = 0, tick = null, pausedAt = 0, mode = "one", limitMin = 60;
 
   songs.forEach((s, i) => {
     const b = document.createElement("button");
     b.type = "button"; b.className = "item";
-    b.innerHTML = `<video muted preload="metadata" src="${s.file}#t=15"></video>
-      <div><b>${i + 1}. ${s.title}</b><span>원곡 ${s.len}</span></div>`;
+    b.innerHTML = `<div class="thumb"><video muted preload="metadata" src="${s.file}#t=15"></video><div class="num">${i + 1}</div></div>
+      <div><b>${s.title}</b><span>원곡 ${s.len}</span><br><em class="pill">지금 곡</em></div>`;
     b.addEventListener("click", () => select(i, true));
     list.appendChild(b);
   });
 
+  document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => {
+    mode = b.dataset.mode; player.loop = mode === "one";
+    document.querySelectorAll("[data-mode]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  }));
+  document.querySelectorAll("[data-min]").forEach(b => b.addEventListener("click", () => {
+    limitMin = Number(b.dataset.min);
+    document.querySelectorAll("[data-min]").forEach(x => x.setAttribute("aria-pressed", x === b));
+    if (!player.paused) startTimer(); else { clearInterval(tick); tick = null; timerEl.textContent = "재생을 누르면 시작해요"; }
+  }));
+
   function select(i, start, keepTimer){
     current = i;
     player.src = songs[i].file;
-    player.loop = mode.value === "one";
+    player.loop = mode === "one";
     now.textContent = songs[i].title;
     [...list.children].forEach((el, k) => el.classList.toggle("on", k === i));
     try { localStorage.setItem("song", String(i)); } catch(e) {}
@@ -125,48 +217,42 @@
   }
 
   function startTimer(){
-    const m = Number(limit.value);
-    endAt = m ? Date.now() + m * 60000 : 0;
+    endAt = limitMin ? Date.now() + limitMin * 60000 : 0;
     clearInterval(tick);
     tick = setInterval(update, 1000);
     update();
   }
 
   function update(){
-    if (!endAt) { timerEl.textContent = "시간 제한 없이 반복 중"; return; }
+    if (!endAt) { timerEl.textContent = "♾ 계속 반복 중"; return; }
     if (player.paused) return;
     const left = Math.max(0, endAt - Date.now());
     if (left === 0) {
       clearInterval(tick); tick = null; player.pause();
-      timerEl.textContent = "정한 시간이 끝나 재생을 멈췄습니다.";
+      timerEl.textContent = "정한 시간이 끝났어요";
       return;
     }
     const t = Math.ceil(left / 1000);
     const h = Math.floor(t / 3600), mm = Math.floor(t % 3600 / 60), ss = t % 60;
-    timerEl.textContent = "남은 시간 " + (h ? h + ":" : "") +
+    timerEl.textContent = "⏱ 남은 시간 " + (h ? h + ":" : "") +
       String(mm).padStart(h ? 2 : 1, "0") + ":" + String(ss).padStart(2, "0");
   }
 
-  // Paused time does not count: push the end time back while paused.
-  let pausedAt = 0;
-  player.addEventListener("pause", () => { pausedAt = Date.now(); });
+  player.addEventListener("pause", () => { pausedAt = Date.now(); stage.classList.remove("playing"); });
   player.addEventListener("play", () => {
     if (!tick) startTimer();
     else if (pausedAt && endAt) endAt += Date.now() - pausedAt;
-    pausedAt = 0; update();
+    pausedAt = 0; update(); stage.classList.add("playing");
   });
   player.addEventListener("ended", () => {
-    if (mode.value === "all") { pausedAt = 0; select((current + 1) % songs.length, true, true); }
+    if (mode === "all") { pausedAt = 0; select((current + 1) % songs.length, true, true); }
   });
-  mode.addEventListener("change", () => { player.loop = mode.value === "one"; });
-  limit.addEventListener("change", () => { if (!player.paused) startTimer(); else { clearInterval(tick); tick = null; } });
 
   function goFull(){
     try { const p = player.requestFullscreen && player.requestFullscreen(); if (p) p.catch(() => {}); } catch(e) {}
   }
   $("fs").addEventListener("click", goFull);
   document.addEventListener("keydown", e => {
-    if (e.target.tagName === "SELECT") return;
     if (e.key === " ") { e.preventDefault(); player.paused ? player.play().catch(()=>{}) : player.pause(); }
     else if (e.key === "f" || e.key === "F") goFull();
     else if (["1","2","3"].includes(e.key)) select(Number(e.key) - 1, true);
