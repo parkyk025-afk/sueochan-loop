@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>수어찬 반복 재생</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;600&display=swap">
+<style>
+  /* Layout: one large stage with a song list beside it (stacked on phones). */
+  :root{
+    --bg:#f3f5f2; --panel:#ffffff; --ink:#1d2421; --muted:#5f6b66;
+    --line:#dde3df; --accent:#2f6f5e; --accent-ink:#ffffff; --sel:#e5f0ec;
+    --display:"Gowun Dodum","Noto Sans KR","Malgun Gothic",sans-serif;
+    --body:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#121615; --panel:#1b201e; --ink:#e9eeec; --muted:#9aa6a1;
+      --line:#2a312e; --accent:#74c2a9; --accent-ink:#0e1a16; --sel:#1d2c27; color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#121615; --panel:#1b201e; --ink:#e9eeec; --muted:#9aa6a1;
+    --line:#2a312e; --accent:#74c2a9; --accent-ink:#0e1a16; --sel:#1d2c27; color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px}
+  .wrap{max-width:1180px;margin:0 auto;padding-block:24px 40px;
+    padding-left:max(16px, env(safe-area-inset-left, 0px));
+    padding-right:max(16px, env(safe-area-inset-right, 0px))}
+  h1{font-family:var(--display);font-weight:400;font-size:28px;margin:0 0 4px;text-wrap:balance}
+  .sub{color:var(--muted);margin:0 0 20px}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+  @media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
+  video.main{display:block;width:100%;max-width:100%;aspect-ratio:16/9;background:#000}
+  .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+  .now{font-weight:600;margin-right:auto;min-width:0}
+  .timer{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+  button,select{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    padding:8px 12px;border-radius:9px;cursor:pointer}
+  button:hover,select:hover{border-color:var(--accent)}
+  button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .field{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--muted)}
+  .side{display:flex;flex-direction:column;gap:12px;min-width:0}
+  .item{display:flex;gap:12px;align-items:center;text-align:left;width:100%;padding:10px}
+  .item.on{background:var(--sel);border-color:var(--accent)}
+  .item video{width:112px;max-width:100%;aspect-ratio:16/9;border-radius:7px;background:#000;flex:none;pointer-events:none}
+  .item b{display:block;font-size:15px;margin-bottom:2px}
+  .item span{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .hint{color:var(--muted);font-size:13px;line-height:1.7;margin:4px 0 0}
+</style>
+
+<div class="wrap">
+  <h1>수어찬 반복 재생</h1>
+  <p class="sub">곡을 고르면 정한 시간 동안 계속 반복해서 재생됩니다.</p>
+
+  <div class="grid">
+    <div class="stage">
+      <video class="main" id="player" controls playsinline preload="metadata"></video>
+      <div class="bar">
+        <div class="now" id="now"></div>
+        <label class="field" for="mode">반복
+          <select id="mode">
+            <option value="one">이 곡만</option>
+            <option value="all">세 곡 차례로</option>
+          </select>
+        </label>
+        <label class="field" for="limit">시간
+          <select id="limit">
+            <option value="0">계속</option>
+            <option value="20">20분</option>
+            <option value="30">30분</option>
+            <option value="60" selected>1시간</option>
+            <option value="120">2시간</option>
+          </select>
+        </label>
+        <button id="fs" class="primary" type="button">전체화면</button>
+      </div>
+      <div class="bar">
+        <div class="timer" id="timer">재생 버튼을 누르면 시작합니다.</div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="side" id="list"></div>
+      <p class="hint">스페이스바: 재생/일시정지 · F: 전체화면<br>1, 2, 3: 곡 바로 선택</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const songs = [
+    { title: "수어찬 01", file: "sueochan01.mp4", len: "3:18" },
+    { title: "수어찬 02", file: "sueochan02.mp4", len: "2:46" },
+    { title: "너는 꽃이야", file: "flower.mp4", len: "2:45" }
+  ];
+  const $ = id => document.getElementById(id);
+  const player = $("player"), list = $("list"), now = $("now"),
+        mode = $("mode"), limit = $("limit"), timerEl = $("timer");
+  let current = 0, endAt = 0, tick = null;
+
+  songs.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "item";
+    b.innerHTML = `<video muted preload="metadata" src="${s.file}#t=15"></video>
+      <div><b>${i + 1}. ${s.title}</b><span>원곡 ${s.len}</span></div>`;
+    b.addEventListener("click", () => select(i, true));
+    list.appendChild(b);
+  });
+
+  function select(i, start, keepTimer){
+    current = i;
+    player.src = songs[i].file;
+    player.loop = mode.value === "one";
+    now.textContent = songs[i].title;
+    [...list.children].forEach((el, k) => el.classList.toggle("on", k === i));
+    try { localStorage.setItem("song", String(i)); } catch(e) {}
+    if (start) { if (!keepTimer) startTimer(); player.play().catch(() => {}); }
+  }
+
+  function startTimer(){
+    const m = Number(limit.value);
+    endAt = m ? Date.now() + m * 60000 : 0;
+    clearInterval(tick);
+    tick = setInterval(update, 1000);
+    update();
+  }
+
+  function update(){
+    if (!endAt) { timerEl.textContent = "시간 제한 없이 반복 중"; return; }
+    if (player.paused) return;
+    const left = Math.max(0, endAt - Date.now());
+    if (left === 0) {
+      clearInterval(tick); tick = null; player.pause();
+      timerEl.textContent = "정한 시간이 끝나 재생을 멈췄습니다.";
+      return;
+    }
+    const t = Math.ceil(left / 1000);
+    const h = Math.floor(t / 3600), mm = Math.floor(t % 3600 / 60), ss = t % 60;
+    timerEl.textContent = "남은 시간 " + (h ? h + ":" : "") +
+      String(mm).padStart(h ? 2 : 1, "0") + ":" + String(ss).padStart(2, "0");
+  }
+
+  // Paused time does not count: push the end time back while paused.
+  let pausedAt = 0;
+  player.addEventListener("pause", () => { pausedAt = Date.now(); });
+  player.addEventListener("play", () => {
+    if (!tick) startTimer();
+    else if (pausedAt && endAt) endAt += Date.now() - pausedAt;
+    pausedAt = 0; update();
+  });
+  player.addEventListener("ended", () => {
+    if (mode.value === "all") { pausedAt = 0; select((current + 1) % songs.length, true, true); }
+  });
+  mode.addEventListener("change", () => { player.loop = mode.value === "one"; });
+  limit.addEventListener("change", () => { if (!player.paused) startTimer(); else { clearInterval(tick); tick = null; } });
+
+  function goFull(){
+    try { const p = player.requestFullscreen && player.requestFullscreen(); if (p) p.catch(() => {}); } catch(e) {}
+  }
+  $("fs").addEventListener("click", goFull);
+  document.addEventListener("keydown", e => {
+    if (e.target.tagName === "SELECT") return;
+    if (e.key === " ") { e.preventDefault(); player.paused ? player.play().catch(()=>{}) : player.pause(); }
+    else if (e.key === "f" || e.key === "F") goFull();
+    else if (["1","2","3"].includes(e.key)) select(Number(e.key) - 1, true);
+  });
+
+  let first = 0;
+  try { first = Number(localStorage.getItem("song")) || 0; } catch(e) {}
+  select(first < songs.length ? first : 0, false);
+</script>
+
+</body>
+</html>
